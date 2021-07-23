@@ -3,3 +3,4 @@ __pycache__
 *.tmp
 *.swp
 *.pth
+.DS_Store
