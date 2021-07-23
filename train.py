@@ -3,32 +3,38 @@ from BYOL import BYOL
 from torchvision import models
 from dataset import ImageNet_5Class
 
-resnet = models.resnet50()
-learner = BYOL(net=resnet)
 
-my_dataset = ImageNet_5Class()
-trainloader = torch.utils.DataLoader(my_dataset, batch_size=128, suffle=False)
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-optimizer = torch.optim.Adam(learner.parameters(), lr=3e-4)
+def self_supervise_train():
+    resnet = models.resnet50()
+    learner = BYOL(net=resnet)
 
-# loop over the dataset multiple times
-for epoch in range(5):
-    running_loss = 0.0
-    for i, data in enumerate(trainloader, 0):
-        inputs, labels = data
-        inputs, labels = inputs.to(device), labels.to(device)
+    my_dataset = ImageNet_5Class()
+    trainloader = torch.utils.data.DataLoader(my_dataset, batch_size=64, shuffle=False)
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    optimizer = torch.optim.Adam(learner.parameters(), lr=3e-4)
 
-        # zero the parameter gradients
-        optimizer.zero_grad()
+    learner.to(device)
+    # loop over the dataset/multiple times
+    for epoch in range(5):
+        running_loss = 0.0
+        for i, data in enumerate(trainloader, 0):
+            inputs = data
+            inputs = inputs.to(device)
 
-        # forward + backward + optimize
-        loss = learner(inputs)
-        loss.backward()
-        optimizer.step()
-        learner.update_moving_average()
+            # zero the parameter gradients
+            optimizer.zero_grad()
 
-        running_loss += loss.item()
+            # forward + backward + optimize
+            loss = learner(inputs)
+            loss.backward()
+            optimizer.step()
+            learner.update_moving_average()
 
-    print('Loss: {}'.format(running_loss))
+            running_loss += loss.item()
 
-print('Finished Training')
+        print('Loss: {}'.format(running_loss))
+        
+    torch.save(learner.online_encoder.state_dict(),"encoder.pth")
+    print('Finished Training')
+
+self_supervise_train()

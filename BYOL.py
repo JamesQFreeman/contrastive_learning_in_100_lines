@@ -35,7 +35,6 @@ class BYOL(nn.Module):
     def __init__(self, net: nn.Module, moving_average_decay: float = 0.99) -> None:
         super().__init__()
         num_features = net.fc.in_features
-        print(num_features, "num features\n")
         self.augment1 = SimCLR_augment
         self.augment2 = SimCLR_augment
         self.target_encoder = get_encoder(net)
@@ -69,12 +68,3 @@ class BYOL(nn.Module):
         loss = loss_fn(pred1, proj2.detach()) + loss_fn(pred2, proj1.detach())
         return loss.mean()
 
-
-if __name__ == "__main__":
-    from torchvision.models import resnet50
-    net = resnet50()
-    my_model = BYOL(net)
-    rand_input = torch.randn(2, 3, 224, 224)
-    my_model.online_encoder(rand_input)
-    loss = my_model(rand_input)
-    print(loss)
