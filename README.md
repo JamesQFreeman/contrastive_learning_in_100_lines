@@ -11,7 +11,7 @@
 More frameworks coming later, the progress:
 - [x] BYOL, Bootstrap Your Own Latent
 - [ ] SimCLR
-- [ ] SimSiam
+- [ ] SimSiam (In progree)
 - [ ] Barlow Twins
 
 ## Install
