@@ -18,8 +18,10 @@ def MLP(in_size, out_size, hidden_size=4096):
         nn.Linear(hidden_size, out_size)
     )
 
+def InfoNCE(x1,x2):
 
-class SimSiam(nn.Module):
+
+class SimCLR(nn.Module):
     def __init__(self, net: nn.Module) -> None:
         super().__init__()
         num_features = net.fc.in_features
@@ -28,14 +30,16 @@ class SimSiam(nn.Module):
 
         self.encoder = get_encoder(net)
         self.projector = MLP(in_size=num_features, out_size=256)
-        self.predictor = MLP(in_size=256, out_size=256)
 
         self.criterion = nn.CosineSimilarity(dim=1)
 
     def forward(self, x):
         view1, view2 = self.augment1(x), self.augment2(x)
-        proj1, proj2 = self.projector(self.encoder(view1)), self.projector(self.encoder(view2))
+        proj1, proj2 = self.projector(self.encoder(
+            view1)), self.projector(self.encoder(view2))
         pred1, pred2 = self.predictor(proj1), self.predictor(proj2)
+
+        loss = nn
         loss = -(self.criterion(proj1, pred2).mean() +
                  self.criterion(proj2, pred1).mean()) * 0.5
         return loss.mean()
